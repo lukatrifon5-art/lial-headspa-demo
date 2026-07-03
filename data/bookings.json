@@ -1,12 +1,3 @@
 {
-  "bookings": [
-    {
-      "date": "2099-01-15",
-      "time": "11:00",
-      "name": "Test Verificare",
-      "phone": "+37360000000",
-      "service": "",
-      "message": ""
-    }
-  ]
+  "bookings": []
 }
