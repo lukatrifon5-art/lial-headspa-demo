@@ -119,10 +119,6 @@ nav a:hover { color: var(--gold-light); }
   color: rgba(250,247,240,0.75); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
 }
 .scroll-hint svg { width: 16px; height: 16px; animation: bounce 2s ease-in-out infinite; }
-.hero-photo-credit {
-  position: absolute; bottom: 14px; right: 16px; z-index: 2;
-  color: rgba(250,247,240,0.55); font-size: 0.68rem; letter-spacing: 0.03em;
-}
 @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(7px); opacity: 1; } }
 /* On short viewports the vertically-centered hero content can grow tall enough to
    overlap this absolutely-positioned hint (and even the header above it), so hide
