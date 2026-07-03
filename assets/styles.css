@@ -36,6 +36,15 @@ img { display: block; max-width: 100%; }
 .section-lead { color: var(--ink-soft); font-size: 1.05rem; max-width: 620px; }
 .section-head { text-align: center; margin: 0 auto 60px; max-width: 680px; }
 
+/* Accessibility: hidden off-screen until keyboard-focused, so Tab users can
+   jump straight past the header/nav instead of tabbing through every link. */
+.skip-link {
+  position: absolute; top: -60px; left: 12px; z-index: 3000;
+  background: var(--ink); color: var(--cream); padding: 12px 20px; border-radius: 10px;
+  font-size: 0.88rem; transition: top .2s ease;
+}
+.skip-link:focus { top: 12px; }
+
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 16px 34px; border-radius: 999px;
