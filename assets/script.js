@@ -54,6 +54,66 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 revealEls.forEach((el) => revealObserver.observe(el));
 
+// Carousels (reviews, ...): continuous CSS marquee, truly infinite, never pauses
+document.querySelectorAll('.carousel-wrap').forEach((wrap) => {
+  const track = wrap.querySelector('.carousel-track');
+  if (!track) return;
+  const prevBtn = wrap.querySelector('.carousel-arrow.prev');
+  const nextBtn = wrap.querySelector('.carousel-arrow.next');
+
+  // Duplicate the item set once: the CSS animation moves exactly -50% (one set's
+  // width), so the loop point always lines up pixel-perfectly with no JS math.
+  const originalItems = Array.from(track.children);
+  originalItems.forEach((item) => {
+    const clone = item.cloneNode(true);
+    clone.classList.remove('reveal', 'reveal-delay-1', 'reveal-delay-2', 'reveal-delay-3');
+    track.appendChild(clone);
+  });
+
+  const visibleCount = () => (window.innerWidth <= 760 ? 1 : window.innerWidth <= 960 ? 2 : 3);
+  const gap = parseFloat(getComputedStyle(track).columnGap) || 26;
+  const secondsPerCard = 4.5;
+
+  // Only touch the animation's CSS custom properties when the width actually
+  // changed by a meaningful amount, so mobile browser-chrome resize events
+  // (address bar show/hide) don't restart or jitter the marquee needlessly.
+  let lastCardWidth = null;
+  const sizeTrack = () => {
+    const count = visibleCount();
+    const cardWidth = (wrap.clientWidth - gap * (count - 1)) / count;
+    if (lastCardWidth !== null && Math.abs(cardWidth - lastCardWidth) < 1) return;
+    lastCardWidth = cardWidth;
+    track.style.setProperty('--card-width', cardWidth + 'px');
+    track.style.setProperty('--marquee-duration', (originalItems.length * secondsPerCard) + 's');
+    // Exact pixel distance to the start of the cloned set. Using -50% here would be
+    // wrong: the track's total width includes one extra gap at the original/clone
+    // boundary, so 50% of it lands half a gap short of the clone's actual start,
+    // causing a small but real jump every time the animation loops.
+    const slideDistance = originalItems.length * (cardWidth + gap);
+    track.style.setProperty('--slide-distance', slideDistance + 'px');
+  };
+  sizeTrack();
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(sizeTrack, 200);
+  });
+
+  const nudge = (dir) => {
+    const anim = track.getAnimations()[0];
+    if (!anim) return;
+    const durationMs = parseFloat(getComputedStyle(track).animationDuration) * 1000;
+    let next = (anim.currentTime || 0) + dir * secondsPerCard * 1000;
+    if (durationMs > 0) {
+      // Wrap into [0, durationMs) so it can never go negative and freeze the animation
+      next = ((next % durationMs) + durationMs) % durationMs;
+    }
+    anim.currentTime = next;
+  };
+  if (nextBtn) nextBtn.addEventListener('click', () => nudge(1));
+  if (prevBtn) prevBtn.addEventListener('click', () => nudge(-1));
+});
+
 // Cookie consent banner (essential-only cookies, no tracking) - shown once until accepted
 const cookieBanner = document.getElementById('cookieBanner');
 const cookieAccept = document.getElementById('cookieAccept');
@@ -167,25 +227,4 @@ if (bookingForm) {
     timeSelect.disabled = true;
     submitBtn.disabled = false;
   });
-}
-
-// Lightbox for gallery
-const lightbox = document.getElementById('lightbox');
-if (lightbox) {
-  const lightboxImg = lightbox.querySelector('img');
-  const closeBtn = lightbox.querySelector('.lightbox-close');
-
-  document.querySelectorAll('.gallery-item').forEach((item) => {
-    item.addEventListener('click', () => {
-      const img = item.querySelector('img');
-      lightboxImg.src = img.src;
-      lightboxImg.alt = img.alt;
-      lightbox.classList.add('open');
-    });
-  });
-
-  const closeLightbox = () => lightbox.classList.remove('open');
-  closeBtn.addEventListener('click', closeLightbox);
-  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
 }
