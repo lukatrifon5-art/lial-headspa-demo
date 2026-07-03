@@ -125,6 +125,35 @@ document.querySelectorAll('.carousel-wrap').forEach((wrap) => {
   if (prevBtn) prevBtn.addEventListener('click', () => nudge(-1));
 });
 
+// Service detail modal (pachete.html): click a price item to see a photo + description
+const serviceModal = document.getElementById('serviceModal');
+if (serviceModal) {
+  const modalPhoto = serviceModal.querySelector('.service-modal-photo img');
+  const modalName = serviceModal.querySelector('h3');
+  const modalDuration = serviceModal.querySelector('.service-modal-duration');
+  const modalPrice = serviceModal.querySelector('.service-modal-price');
+  const modalDesc = serviceModal.querySelector('.service-modal-desc');
+  const modalCloseBtn = serviceModal.querySelector('.service-modal-close');
+
+  document.querySelectorAll('.price-item[data-name]').forEach((item) => {
+    item.addEventListener('click', () => {
+      const group = item.closest('.price-group');
+      modalPhoto.src = group ? group.dataset.photo : '';
+      modalPhoto.alt = item.dataset.name;
+      modalName.textContent = item.dataset.name;
+      modalDuration.textContent = item.dataset.duration;
+      modalPrice.textContent = item.dataset.price;
+      modalDesc.textContent = item.dataset.desc;
+      serviceModal.classList.add('open');
+    });
+  });
+
+  const closeServiceModal = () => serviceModal.classList.remove('open');
+  modalCloseBtn.addEventListener('click', closeServiceModal);
+  serviceModal.addEventListener('click', (e) => { if (e.target === serviceModal) closeServiceModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeServiceModal(); });
+}
+
 // Cookie consent banner (essential-only cookies, no tracking) - shown once until accepted
 const cookieBanner = document.getElementById('cookieBanner');
 const cookieAccept = document.getElementById('cookieAccept');
