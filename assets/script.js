@@ -22,7 +22,7 @@ if (burger && mobileMenu) {
 
 // Sticky CTA visibility: hidden over hero and footer
 const stickyCta = document.getElementById('stickyCta');
-const heroEl = document.querySelector('.hero');
+const heroEl = document.querySelector('.hero, .page-hero');
 const footerEl = document.querySelector('footer');
 if (stickyCta && heroEl && footerEl) {
   let heroVisible = true;

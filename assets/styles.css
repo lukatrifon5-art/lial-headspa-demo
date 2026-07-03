@@ -100,10 +100,13 @@ nav a:hover { color: var(--gold-light); }
 }
 .scroll-hint svg { width: 16px; height: 16px; animation: bounce 2s ease-in-out infinite; }
 @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(7px); opacity: 1; } }
-/* On short viewports the vertically-centered hero content can grow tall enough
-   to overlap this absolutely-positioned hint, so hide it rather than risk the overlap. */
+/* On short viewports the vertically-centered hero content can grow tall enough to
+   overlap this absolutely-positioned hint (and even the header above it), so hide
+   the hint and switch to top-anchored content instead of centering it. */
 @media (max-height: 700px) {
   .scroll-hint { display: none; }
+  .hero { align-items: flex-start; }
+  .hero-content { padding-top: 120px; padding-bottom: 40px; }
 }
 
 /* ===== REVEAL ===== */
@@ -179,6 +182,9 @@ nav a:hover { color: var(--gold-light); }
 .package-card.featured li { border-bottom-color: rgba(250,247,240,0.14); }
 .package-card li svg { width: 16px; height: 16px; stroke: var(--gold); flex-shrink: 0; margin-top: 3px; }
 .package-card .btn { width: 100%; }
+.package-duration { font-size: 0.86rem; color: var(--ink-soft); margin-bottom: 26px; flex-grow: 1; }
+.package-card.featured .package-duration { color: rgba(250,247,240,0.75); }
+.packages-more { text-align: center; margin-top: 44px; }
 
 .gift-banner {
   margin-top: 60px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
@@ -187,6 +193,33 @@ nav a:hover { color: var(--gold-light); }
 .gift-banner-img { width: 100px; height: auto; border-radius: 10px; box-shadow: 0 16px 34px -12px rgba(0,0,0,0.5); }
 .gift-banner h4 { color: var(--white); font-size: 1.3rem; margin-bottom: 6px; }
 .gift-banner p { color: rgba(255,255,255,0.78); font-size: 0.92rem; }
+
+/* ===== SECONDARY PAGE HEADER (pachete.html, ...) ===== */
+.page-hero {
+  padding: 170px 0 70px; background: var(--ink); color: var(--cream); text-align: center;
+}
+.page-hero .eyebrow { color: var(--gold-light); }
+.page-hero h1 { color: var(--white); font-size: clamp(2.2rem, 5vw, 3.2rem); max-width: 760px; margin: 0 auto 16px; }
+.page-hero p { color: rgba(250,247,240,0.75); max-width: 600px; margin: 0 auto; font-size: 1.02rem; }
+
+/* ===== FULL PRICE LIST (pachete.html) ===== */
+.price-page { background: var(--cream); padding: 90px 0 40px; }
+.price-group { margin-bottom: 60px; }
+.price-group:last-child { margin-bottom: 0; }
+.price-group-head { margin-bottom: 26px; }
+.price-group-head h2 { font-size: 1.7rem; margin-bottom: 6px; }
+.price-group-head p { color: var(--ink-soft); font-size: 0.94rem; }
+.price-list { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.price-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 22px 32px; border-bottom: 1px solid rgba(23,20,15,0.08);
+}
+.price-item:last-child { border-bottom: none; }
+.price-item-name { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--ink); }
+.price-item-duration { font-size: 0.8rem; color: var(--ink-soft); margin-top: 4px; }
+.price-item-amount { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); white-space: nowrap; flex-shrink: 0; }
+.price-cta { text-align: center; margin-top: 64px; }
+.price-cta p { color: var(--ink-soft); margin-bottom: 22px; font-size: 0.98rem; }
 
 /* ===== REVIEWS ===== */
 .reviews { padding: 130px 0; background: var(--ink); color: var(--cream); }
@@ -347,7 +380,11 @@ footer { background: var(--ink); color: var(--cream); padding: 80px 0 30px; }
   .booking-row { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
   .container { padding: 0 22px; }
-  .about, .how, .benefits, .packages, .reviews, .contact { padding: 90px 0; }
+  .about, .how, .benefits, .packages, .reviews, .contact, .price-page { padding: 90px 0; }
   .gift-banner { flex-direction: column; align-items: flex-start; }
   .sticky-cta { right: 18px; bottom: 18px; padding: 13px 22px; font-size: 0.8rem; }
+  .page-hero { padding: 140px 0 50px; }
+  .price-item { padding: 18px 22px; }
+  .price-item-name { font-size: 1.08rem; }
+  .price-item-amount { font-size: 1.2rem; }
 }
