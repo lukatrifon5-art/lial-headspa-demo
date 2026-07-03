@@ -1,3 +1,14 @@
+// Homepage entrance overlay: shows the logo briefly, then fades away
+const introOverlay = document.getElementById('introOverlay');
+if (introOverlay) {
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      introOverlay.classList.add('hide');
+      setTimeout(() => introOverlay.remove(), 900);
+    }, 900);
+  });
+}
+
 // Header scroll state
 const siteHeader = document.getElementById('siteHeader');
 window.addEventListener('scroll', () => {

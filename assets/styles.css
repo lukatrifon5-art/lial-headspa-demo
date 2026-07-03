@@ -49,6 +49,19 @@ img { display: block; max-width: 100%; }
 .btn-dark { background: var(--ink); color: var(--cream); }
 .btn-dark:hover { background: var(--moss); transform: translateY(-3px); }
 
+/* ===== INTRO OVERLAY (homepage entrance only) ===== */
+.intro-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .9s var(--ease);
+}
+.intro-overlay.hide { opacity: 0; pointer-events: none; }
+.intro-mark { display: flex; flex-direction: column; align-items: center; gap: 16px; animation: introReveal 1.2s var(--ease) both; }
+.intro-mark img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px rgba(250,247,240,0.25); }
+.intro-mark span { font-family: 'Cormorant Garamond', serif; letter-spacing: 0.34em; text-transform: uppercase; color: var(--cream); font-size: 0.92rem; }
+@keyframes introReveal { from { opacity: 0; transform: scale(.94) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
 /* ===== HEADER ===== */
 header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 500;
@@ -99,6 +112,10 @@ nav a:hover { color: var(--gold-light); }
   color: rgba(250,247,240,0.75); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
 }
 .scroll-hint svg { width: 16px; height: 16px; animation: bounce 2s ease-in-out infinite; }
+.hero-photo-credit {
+  position: absolute; bottom: 14px; right: 16px; z-index: 2;
+  color: rgba(250,247,240,0.55); font-size: 0.68rem; letter-spacing: 0.03em;
+}
 @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(7px); opacity: 1; } }
 /* On short viewports the vertically-centered hero content can grow tall enough to
    overlap this absolutely-positioned hint (and even the header above it), so hide
@@ -363,6 +380,13 @@ footer { background: var(--ink); color: var(--cream); padding: 80px 0 30px; }
   .steps, .packages-grid { grid-template-columns: repeat(2, 1fr); }
   .benefits-grid { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+/* Between the burger breakpoint (760px) and full desktop, the full nav + both
+   header buttons don't fit on one line without wrapping — tighten the gaps and
+   drop the secondary "Sună acum" button (the gold "Rezervă" CTA stays). */
+@media (max-width: 1100px) and (min-width: 761px) {
+  nav ul { gap: 20px; }
+  .nav-actions .btn-outline { display: none; }
 }
 @media (max-width: 760px) {
   nav, .nav-actions .btn-outline { display: none; }
