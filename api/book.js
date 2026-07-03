@@ -77,6 +77,7 @@ module.exports = async (req, res) => {
       await putFile(repo, ghToken, 'data/bookings.json', { bookings }, sha, `Rezervare nouă: ${date} ${time}`);
       reserved = true;
     } catch (err) {
+      console.error('booking reservation attempt failed:', err.message);
       if (attempt >= 3) {
         res.status(502).json({ error: 'Nu am putut verifica disponibilitatea. Încearcă din nou.' });
         return;
