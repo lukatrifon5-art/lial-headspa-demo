@@ -9,49 +9,9 @@ if (introOverlay) {
   });
 }
 
-// Custom cursor: a small dot that follows the mouse with a trailing ring that
-// expands over anything clickable. Only on devices with a real mouse — touch
-// devices report (hover: none), so this never runs there.
+// Magnetic button pull — desktop/mouse only (matchMedia hover:hover +
+// pointer:fine), never runs on phones/tablets since there's no cursor there.
 if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  document.documentElement.classList.add('has-custom-cursor');
-  const dot = document.createElement('div');
-  dot.className = 'cursor-dot hidden';
-  const ring = document.createElement('div');
-  ring.className = 'cursor-ring hidden';
-  document.body.appendChild(dot);
-  document.body.appendChild(ring);
-
-  let ringX = 0, ringY = 0, targetX = 0, targetY = 0;
-  const followRing = () => {
-    // Lerp toward the pointer so the ring trails the dot slightly — feels
-    // smoother than snapping to the exact pointer position every frame.
-    ringX += (targetX - ringX) * 0.18;
-    ringY += (targetY - ringY) * 0.18;
-    ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
-    requestAnimationFrame(followRing);
-  };
-  requestAnimationFrame(followRing);
-
-  window.addEventListener('mousemove', (e) => {
-    targetX = e.clientX;
-    targetY = e.clientY;
-    dot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
-    dot.classList.remove('hidden');
-    ring.classList.remove('hidden');
-  });
-  document.addEventListener('mouseleave', () => {
-    dot.classList.add('hidden');
-    ring.classList.add('hidden');
-  });
-
-  const HOVER_SELECTOR = 'a, button, input, select, textarea, .price-item, [role="button"]';
-  document.addEventListener('mouseover', (e) => {
-    if (e.target.closest(HOVER_SELECTOR)) ring.classList.add('hover');
-  });
-  document.addEventListener('mouseout', (e) => {
-    if (e.target.closest(HOVER_SELECTOR)) ring.classList.remove('hover');
-  });
-
   // Magnetic pull on primary buttons: a subtle nudge toward the cursor while
   // it's nearby, released (transition back to 0) once the pointer moves away.
   document.querySelectorAll('.btn').forEach((btn) => {
