@@ -77,6 +77,8 @@ module.exports = async (req, res) => {
       await putFile(repo, ghToken, 'data/bookings.json', { bookings }, sha, `Rezervare nouă: ${date} ${time}`);
       reserved = true;
     } catch (err) {
+      // Logged (not just swallowed) so a future problem shows up in Vercel's
+      // runtime logs instead of only as a generic error to the visitor.
       console.error('booking reservation attempt failed:', err.message);
       if (attempt >= 3) {
         res.status(502).json({ error: 'Nu am putut verifica disponibilitatea. Încearcă din nou.' });
