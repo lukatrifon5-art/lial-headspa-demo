@@ -82,7 +82,8 @@ if (bookingForm) {
   const dateError = document.getElementById('bf-date-error');
   const timeError = document.getElementById('bf-time-error');
 
-  const todayISO = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   dateInput.setAttribute('min', todayISO);
 
   const openDatePicker = () => { try { dateInput.showPicker(); } catch (err) {} };

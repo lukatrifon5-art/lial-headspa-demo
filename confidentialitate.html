@@ -20,6 +20,14 @@
   .policy-wrap a { color: var(--gold); border-bottom: 1px solid transparent; }
   .policy-wrap a:hover { border-color: var(--gold); }
   .back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 30px; font-size: 0.9rem; color: var(--gold); }
+  /* This page has a light body (no dark hero), so the header must stay dark
+     regardless of script.js's scroll-based .scrolled toggle. */
+  #siteHeader { background: rgba(23,20,15,0.92) !important; backdrop-filter: blur(14px); padding: 12px 0 !important; box-shadow: 0 12px 30px -18px rgba(0,0,0,0.5); }
+  /* This page has no burger menu, so don't hide the single-link nav on mobile
+     the way the shared stylesheet does for pages that rely on the burger. */
+  @media (max-width: 760px) {
+    #siteHeader nav { display: flex !important; }
+  }
 </style>
 </head>
 <body>
