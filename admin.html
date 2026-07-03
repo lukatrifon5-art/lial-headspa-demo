@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Administrare — Lia L Head SPA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="assets/images/logo.jpg">
+<style>
+  body { background: var(--cream); min-height: 100vh; }
+  .admin-wrap { max-width: 640px; margin: 0 auto; padding: 70px 24px 60px; }
+  .admin-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+  .admin-logo img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+  .admin-logo span { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
+  .admin-card { background: var(--white); border-radius: var(--radius); padding: 40px; box-shadow: var(--shadow); }
+  .admin-card h1 { font-size: 1.8rem; margin-bottom: 8px; }
+  .admin-card .lead { color: var(--ink-soft); font-size: 0.95rem; margin-bottom: 28px; }
+  .admin-field { margin-bottom: 18px; }
+  .admin-field label { display: block; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-bottom: 8px; }
+  .admin-field input {
+    width: 100%; padding: 13px 16px; border: 1px solid rgba(23,20,15,0.14); border-radius: 12px;
+    background: var(--cream); color: var(--ink); font-family: 'Poppins', sans-serif; font-size: 0.92rem;
+  }
+  .admin-field input:focus { outline: none; border-color: var(--gold); }
+  .admin-msg { margin-top: 14px; font-size: 0.88rem; min-height: 1.2em; }
+  .admin-msg.error { color: #b0574f; }
+  .admin-msg.success { color: var(--moss); }
+  #adminPanel { display: none; }
+
+  /* Calendar */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .cal-header h2 { font-size: 1.3rem; text-transform: capitalize; }
+  .cal-nav { display: flex; gap: 8px; }
+  .cal-nav button {
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(23,20,15,0.14);
+    background: var(--cream); cursor: pointer; font-size: 1.1rem; color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cal-nav button:hover { background: var(--gold); color: var(--white); border-color: var(--gold); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-weekday { text-align: center; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); padding-bottom: 6px; }
+  .cal-day {
+    position: relative;
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    border-radius: 10px; font-size: 0.92rem; cursor: pointer;
+    background: var(--cream); border: 1px solid transparent; color: var(--ink);
+    transition: background .2s ease, color .2s ease;
+  }
+  .cal-day:hover:not(.cal-day--empty):not(.cal-day--past) { background: var(--gold-light); }
+  .cal-day--empty { visibility: hidden; cursor: default; }
+  .cal-day--past { color: rgba(23,20,15,0.28); cursor: not-allowed; background: transparent; }
+  .cal-day--today { border-color: var(--gold); font-weight: 600; }
+  .cal-day--closed { background: #b0574f; color: var(--white); }
+  .cal-day--closed:hover { background: #9a4a44; }
+  .cal-day--booked { background: var(--moss); color: var(--white); }
+  .cal-day--booked:hover { background: #3c4c2f; }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px; font-size: 0.82rem; color: var(--ink-soft); }
+  .cal-legend span { display: flex; align-items: center; gap: 8px; }
+  .cal-legend-swatch-green { width: 12px; height: 12px; border-radius: 4px; background: var(--moss); display: inline-block; }
+  .cal-legend-swatch { width: 12px; height: 12px; border-radius: 4px; background: #b0574f; display: inline-block; }
+
+  /* Day detail modal */
+  .day-modal {
+    position: fixed; inset: 0; z-index: 900;
+    background: rgba(23,20,15,0.65);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity .3s ease;
+    padding: 20px;
+  }
+  .day-modal.open { opacity: 1; pointer-events: auto; }
+  .day-modal-inner {
+    background: var(--cream); border-radius: var(--radius);
+    max-width: 480px; width: 100%; max-height: 82vh; overflow-y: auto;
+    padding: 34px; position: relative;
+  }
+  .day-modal-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--stone); border: none; cursor: pointer; font-size: 1.2rem; color: var(--ink);
+  }
+  .day-modal h3 { font-size: 1.3rem; margin-bottom: 18px; text-transform: capitalize; }
+  .booking-entry { background: var(--white); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; font-size: 0.88rem; line-height: 1.7; }
+  .booking-entry .b-time { color: var(--gold); font-weight: 600; }
+  .booking-cancel {
+    margin-top: 8px; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(176,87,79,0.4);
+    background: transparent; color: #b0574f; font-family: 'Poppins', sans-serif; font-size: 0.78rem; cursor: pointer;
+  }
+  .booking-cancel:hover { background: #b0574f; color: var(--white); }
+  .booking-cancel:disabled { opacity: 0.6; cursor: not-allowed; }
+  .no-bookings { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 20px; }
+  .day-modal-toggle { margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="admin-wrap">
+  <a href="index.html" class="admin-logo">
+    <img src="assets/images/logo.jpg" alt="Lia L Head SPA">
+    <span>Lia L Head Spa</span>
+  </a>
+
+  <div class="admin-card">
+    <div id="loginPanel">
+      <h1>Administrare rezervări</h1>
+      <p class="lead">Introdu parola pentru a gestiona zilele nelucrătoare și a vedea rezervările.</p>
+      <div class="admin-field">
+        <label for="admin-password">Parolă</label>
+        <input type="password" id="admin-password" placeholder="Parola de administrare">
+      </div>
+      <button class="btn btn-gold" id="loginBtn" style="width:100%;border:none;cursor:pointer;">Intră</button>
+      <p class="admin-msg" id="loginMsg"></p>
+    </div>
+
+    <div id="adminPanel">
+      <h1>Calendar rezervări</h1>
+      <p class="lead">Apasă pe orice zi pentru a vedea rezervările sau a o marca liberă/lucrătoare.</p>
+
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button id="prevMonth" aria-label="Luna anterioară">‹</button>
+          <button id="nextMonth" aria-label="Luna următoare">›</button>
+        </div>
+        <h2 id="calTitle"></h2>
+        <span style="width:38px;"></span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div class="cal-legend">
+        <span><span class="cal-legend-swatch"></span> Zi liberă (nelucrătoare)</span>
+        <span><span class="cal-legend-swatch-green"></span> Zi cu rezervări</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="day-modal" id="dayModal">
+  <div class="day-modal-inner">
+    <button class="day-modal-close" id="dayModalClose" aria-label="Închide">&times;</button>
+    <h3 id="dayModalTitle"></h3>
+    <div id="dayModalBookings"></div>
+    <button class="btn btn-dark day-modal-toggle" id="dayModalToggle" style="width:100%;border:none;cursor:pointer;"></button>
+    <p class="admin-msg" id="dayModalMsg"></p>
+  </div>
+</div>
+
+<script>
+  const loginPanel = document.getElementById('loginPanel');
+  const adminPanel = document.getElementById('adminPanel');
+  const passwordInput = document.getElementById('admin-password');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
+  const calTitle = document.getElementById('calTitle');
+  const calGrid = document.getElementById('calGrid');
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const nextMonthBtn = document.getElementById('nextMonth');
+
+  const dayModal = document.getElementById('dayModal');
+  const dayModalClose = document.getElementById('dayModalClose');
+  const dayModalTitle = document.getElementById('dayModalTitle');
+  const dayModalBookings = document.getElementById('dayModalBookings');
+  const dayModalToggle = document.getElementById('dayModalToggle');
+  const dayModalMsg = document.getElementById('dayModalMsg');
+
+  let sessionPassword = sessionStorage.getItem('lial-admin-pass') || '';
+  let closedDates = [];
+  let bookingsByDate = {};
+  let activeDate = null;
+  const today = new Date();
+  const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth(); // 0-indexed
+
+  const WEEKDAYS = ['L', 'Ma', 'Mi', 'J', 'V', 'S', 'D'];
+  const toISO = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+  const renderCalendar = () => {
+    const monthDate = new Date(viewYear, viewMonth, 1);
+    calTitle.textContent = monthDate.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
+
+    calGrid.innerHTML = '';
+    WEEKDAYS.forEach((w) => {
+      const el = document.createElement('div');
+      el.className = 'cal-weekday';
+      el.textContent = w;
+      calGrid.appendChild(el);
+    });
+
+    const firstDay = new Date(viewYear, viewMonth, 1);
+    const leadingEmpty = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    for (let i = 0; i < leadingEmpty; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day cal-day--empty';
+      calGrid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = toISO(viewYear, viewMonth, d);
+      const el = document.createElement('div');
+      el.className = 'cal-day';
+      el.textContent = d;
+      el.dataset.date = iso;
+      if (iso === todayISO) el.classList.add('cal-day--today');
+      if (iso < todayISO) el.classList.add('cal-day--past');
+      const isClosed = closedDates.includes(iso);
+      const hasBookings = bookingsByDate[iso] && bookingsByDate[iso].length;
+      if (isClosed) {
+        el.classList.add('cal-day--closed');
+      } else if (hasBookings) {
+        el.classList.add('cal-day--booked');
+      }
+      el.addEventListener('click', () => openDayModal(iso));
+      calGrid.appendChild(el);
+    }
+  };
+
+  // Builds one booking's DOM node with textContent throughout (never innerHTML
+  // with booking-supplied data) — name/phone/service/message are free-ish text
+  // fields, so this is the only safe way to render them.
+  const buildBookingEntry = (b) => {
+    const div = document.createElement('div');
+    div.className = 'booking-entry';
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'b-time';
+    timeSpan.textContent = b.time;
+    div.appendChild(timeSpan);
+    div.appendChild(document.createTextNode(` — ${b.name}`));
+    div.appendChild(document.createElement('br'));
+    div.appendChild(document.createTextNode(`Telefon: ${b.phone}`));
+    if (b.service) {
+      div.appendChild(document.createElement('br'));
+      div.appendChild(document.createTextNode(`Pachet: ${b.service}`));
+    }
+    if (b.message) {
+      div.appendChild(document.createElement('br'));
+      div.appendChild(document.createTextNode(`Mesaj: ${b.message}`));
+    }
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'booking-cancel';
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Anulează rezervarea';
+    cancelBtn.addEventListener('click', () => cancelBooking(b, div, cancelBtn));
+    div.appendChild(document.createElement('br'));
+    div.appendChild(cancelBtn);
+
+    return div;
+  };
+
+  const cancelBooking = async (booking, entryEl, btnEl) => {
+    if (!confirm(`Sigur anulezi rezervarea lui ${booking.name} din ${booking.date} la ${booking.time}?`)) return;
+    btnEl.disabled = true;
+    btnEl.textContent = 'Se anulează...';
+    try {
+      const res = await fetch('/api/admin-delete-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: sessionPassword, date: booking.date, time: booking.time }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Eroare necunoscută');
+      bookingsByDate[booking.date] = (bookingsByDate[booking.date] || []).filter(
+        (b) => !(b.date === booking.date && b.time === booking.time)
+      );
+      entryEl.remove();
+      renderCalendar();
+      if (!bookingsByDate[booking.date] || !bookingsByDate[booking.date].length) {
+        const p = document.createElement('p');
+        p.className = 'no-bookings';
+        p.textContent = 'Nicio rezervare în această zi.';
+        dayModalBookings.appendChild(p);
+      }
+    } catch (err) {
+      btnEl.disabled = false;
+      btnEl.textContent = 'Anulează rezervarea';
+      alert(err.message);
+    }
+  };
+
+  const openDayModal = (iso) => {
+    activeDate = iso;
+    const dt = new Date(iso + 'T00:00:00');
+    dayModalTitle.textContent = dt.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    const bookings = (bookingsByDate[iso] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+    dayModalBookings.innerHTML = '';
+    if (!bookings.length) {
+      const p = document.createElement('p');
+      p.className = 'no-bookings';
+      p.textContent = 'Nicio rezervare în această zi.';
+      dayModalBookings.appendChild(p);
+    } else {
+      bookings.forEach((b) => dayModalBookings.appendChild(buildBookingEntry(b)));
+    }
+
+    const isClosed = closedDates.includes(iso);
+    const isPast = iso < todayISO;
+    dayModalToggle.textContent = isClosed ? 'Marchează ca zi lucrătoare' : 'Marchează ca zi liberă';
+    dayModalToggle.style.display = isPast ? 'none' : 'block';
+    dayModalMsg.textContent = '';
+    dayModalMsg.className = 'admin-msg';
+
+    dayModal.classList.add('open');
+  };
+  const closeDayModal = () => dayModal.classList.remove('open');
+
+  dayModalToggle.addEventListener('click', async () => {
+    if (!activeDate) return;
+    const isClosed = closedDates.includes(activeDate);
+    const action = isClosed ? 'remove' : 'add';
+    dayModalToggle.disabled = true;
+    dayModalMsg.textContent = 'Se salvează...';
+    dayModalMsg.className = 'admin-msg';
+    try {
+      const res = await fetch('/api/admin-update-dates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: sessionPassword, action, date: activeDate }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Eroare necunoscută');
+      closedDates = result.dates || [];
+      renderCalendar();
+      dayModalToggle.textContent = closedDates.includes(activeDate) ? 'Marchează ca zi lucrătoare' : 'Marchează ca zi liberă';
+      dayModalMsg.textContent = 'Salvat. Poate dura circa un minut până apare live pe site.';
+      dayModalMsg.classList.add('success');
+    } catch (err) {
+      dayModalMsg.textContent = err.message;
+      dayModalMsg.classList.add('error');
+    } finally {
+      dayModalToggle.disabled = false;
+    }
+  });
+
+  dayModalClose.addEventListener('click', closeDayModal);
+  dayModal.addEventListener('click', (e) => { if (e.target === dayModal) closeDayModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDayModal(); });
+
+  const groupBookings = (bookings) => {
+    const map = {};
+    bookings.forEach((b) => {
+      if (!map[b.date]) map[b.date] = [];
+      map[b.date].push(b);
+    });
+    return map;
+  };
+
+  const loadData = async () => {
+    const [closedRes, bookingsRes] = await Promise.all([
+      fetch('/api/closed-dates').then((r) => r.json()),
+      fetch('/api/admin-bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: sessionPassword }),
+      }).then((r) => r.json()),
+    ]);
+    closedDates = closedRes.dates || [];
+    bookingsByDate = groupBookings(bookingsRes.bookings || []);
+    renderCalendar();
+  };
+
+  prevMonthBtn.addEventListener('click', () => {
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  });
+  nextMonthBtn.addEventListener('click', () => {
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    renderCalendar();
+  });
+
+  const tryLogin = async () => {
+    const pass = passwordInput.value;
+    if (!pass) return;
+    loginMsg.textContent = 'Se verifică...';
+    loginMsg.className = 'admin-msg';
+    const res = await fetch('/api/admin-update-dates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass, action: 'remove', date: '1999-01-01' }),
+    });
+    if (res.status === 401) {
+      loginMsg.textContent = 'Parolă incorectă.';
+      loginMsg.classList.add('error');
+      return;
+    }
+    sessionPassword = pass;
+    sessionStorage.setItem('lial-admin-pass', pass);
+    loginPanel.style.display = 'none';
+    adminPanel.style.display = 'block';
+    loadData();
+  };
+
+  loginBtn.addEventListener('click', tryLogin);
+  passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
+
+  if (sessionPassword) {
+    fetch('/api/admin-update-dates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: sessionPassword, action: 'remove', date: '1999-01-01' }),
+    }).then((res) => {
+      if (res.status !== 401) {
+        loginPanel.style.display = 'none';
+        adminPanel.style.display = 'block';
+        loadData();
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

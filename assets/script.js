@@ -169,15 +169,18 @@ if (cookieBanner && cookieAccept) {
   });
 }
 
-// Booking form: demo mode — validates fully and shows a friendly confirmation,
-// not yet wired to a live backend (Telegram/GitHub) until the client confirms.
+// Booking form: sends the request to a serverless function that reserves the
+// slot in GitHub (source of truth the admin panel reads from) and notifies
+// the owner on Telegram once that's configured.
 const bookingForm = document.getElementById('bookingForm');
 if (bookingForm) {
   const statusEl = document.getElementById('bookingStatus');
   const nameInput = document.getElementById('bf-name');
   const phoneInput = document.getElementById('bf-phone');
+  const packageSelect = document.getElementById('bf-package');
   const dateInput = document.getElementById('bf-date');
   const timeSelect = document.getElementById('bf-time');
+  const messageInput = document.getElementById('bf-message');
   const nameError = document.getElementById('bf-name-error');
   const phoneError = document.getElementById('bf-phone-error');
   const dateError = document.getElementById('bf-date-error');
@@ -187,6 +190,11 @@ if (bookingForm) {
   const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   dateInput.setAttribute('min', todayISO);
 
+  let closedDates = [];
+  fetch('/api/closed-dates').then((r) => r.json()).then((data) => {
+    closedDates = data.dates || [];
+  }).catch(() => {});
+
   const openDatePicker = () => { try { dateInput.showPicker(); } catch (err) {} };
   dateInput.addEventListener('focus', openDatePicker);
   dateInput.addEventListener('click', openDatePicker);
@@ -195,12 +203,26 @@ if (bookingForm) {
   syncDateValueState();
 
   const TIME_SLOTS = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
-  const loadTimeSlots = () => {
+
+  const loadTimeSlots = async (date) => {
+    timeSelect.innerHTML = '<option value="">Se încarcă orele...</option>';
+    timeSelect.disabled = true;
+    let takenTimes = [];
+    try {
+      const res = await fetch(`/api/booked-slots?date=${encodeURIComponent(date)}`);
+      const data = await res.json();
+      takenTimes = data.times || [];
+    } catch (err) {
+      // If the check fails, still let the visitor pick a time — the server
+      // re-validates availability for real when the booking is submitted.
+    }
     timeSelect.innerHTML = '<option value="">Alege o oră</option>';
     TIME_SLOTS.forEach((slot) => {
       const opt = document.createElement('option');
       opt.value = slot;
-      opt.textContent = slot;
+      const taken = takenTimes.includes(slot);
+      opt.textContent = taken ? `${slot} (indisponibil)` : slot;
+      opt.disabled = taken;
       timeSelect.appendChild(opt);
     });
     timeSelect.disabled = false;
@@ -222,9 +244,16 @@ if (bookingForm) {
   };
   const validateDate = () => {
     if (!dateInput.value) { dateError.textContent = ''; return true; }
-    const ok = dateInput.value >= todayISO;
-    dateError.textContent = ok ? '' : 'Alege o dată din prezent sau din viitor.';
-    return ok;
+    if (dateInput.value < todayISO) {
+      dateError.textContent = 'Alege o dată din prezent sau din viitor.';
+      return false;
+    }
+    if (closedDates.includes(dateInput.value)) {
+      dateError.textContent = 'Această zi este nelucrătoare. Alege altă dată.';
+      return false;
+    }
+    dateError.textContent = '';
+    return true;
   };
   const validateTime = () => {
     const ok = !!timeSelect.value;
@@ -236,9 +265,8 @@ if (bookingForm) {
   phoneInput.addEventListener('blur', validatePhone);
   dateInput.addEventListener('change', () => {
     syncDateValueState();
-    validateDate();
     if (dateInput.value && validateDate()) {
-      loadTimeSlots();
+      loadTimeSlots(dateInput.value);
     } else {
       timeSelect.innerHTML = '<option value="">Alege întâi data</option>';
       timeSelect.disabled = true;
@@ -259,13 +287,46 @@ if (bookingForm) {
     statusEl.textContent = 'Se trimite...';
     statusEl.className = 'booking-status';
 
-    // Demo mode: simulate a short delay, then confirm — no data leaves the browser.
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    statusEl.textContent = 'Mulțumim! (Demo) — pe site-ul live, cererea ar ajunge instant la echipa Lia L.';
-    statusEl.classList.add('success');
-    bookingForm.reset();
-    timeSelect.innerHTML = '<option value="">Alege întâi data</option>';
-    timeSelect.disabled = true;
-    submitBtn.disabled = false;
+    try {
+      const response = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: nameInput.value.trim(),
+          phone: phoneInput.value.trim(),
+          service: packageSelect.value,
+          date: dateInput.value,
+          time: timeSelect.value,
+          message: messageInput.value.trim(),
+        }),
+      });
+      const result = await response.json();
+
+      if (response.status === 409) {
+        timeError.textContent = result.error;
+        statusEl.textContent = 'Ora aleasă tocmai a fost rezervată de altcineva. Alege alta.';
+        statusEl.classList.add('error');
+        loadTimeSlots(dateInput.value);
+        submitBtn.disabled = false;
+        return;
+      }
+      if (!response.ok) {
+        statusEl.textContent = result.error || 'Nu am putut trimite cererea. Încearcă din nou sau sună-ne direct.';
+        statusEl.classList.add('error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      statusEl.textContent = 'Mulțumim! Cererea ta a fost înregistrată — te vom contacta pentru confirmare.';
+      statusEl.classList.add('success');
+      bookingForm.reset();
+      timeSelect.innerHTML = '<option value="">Alege întâi data</option>';
+      timeSelect.disabled = true;
+      submitBtn.disabled = false;
+    } catch (err) {
+      statusEl.textContent = 'Nu am putut trimite cererea. Verifică conexiunea și încearcă din nou.';
+      statusEl.classList.add('error');
+      submitBtn.disabled = false;
+    }
   });
 }
