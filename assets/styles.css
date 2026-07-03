@@ -16,6 +16,24 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== CUSTOM CURSOR (desktop/mouse only — see script.js's hover-capable check) ===== */
+.has-custom-cursor, .has-custom-cursor a, .has-custom-cursor button, .has-custom-cursor input,
+.has-custom-cursor select, .has-custom-cursor textarea { cursor: none; }
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0; z-index: 4000; pointer-events: none;
+  border-radius: 50%; transform: translate(-50%, -50%);
+}
+.cursor-dot {
+  width: 7px; height: 7px; background: var(--gold);
+  transition: opacity .2s ease, background .3s ease;
+}
+.cursor-ring {
+  width: 38px; height: 38px; border: 1px solid rgba(184,147,63,0.55);
+  transition: width .25s var(--ease), height .25s var(--ease), opacity .2s ease, border-color .3s ease, background .3s ease;
+}
+.cursor-ring.hover { width: 60px; height: 60px; background: rgba(184,147,63,0.1); border-color: var(--gold); }
+.cursor-ring.hidden, .cursor-dot.hidden { opacity: 0; }
 html { scroll-behavior: smooth; }
 body {
   font-family: 'Poppins', sans-serif;
@@ -139,11 +157,14 @@ nav a:hover { color: var(--gold-light); }
 }
 
 /* ===== REVEAL ===== */
-.reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
-.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal { opacity: 0; transform: translateY(28px) scale(.97); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.reveal.visible { opacity: 1; transform: translateY(0) scale(1); }
 .reveal-delay-1.visible { transition-delay: .12s; }
 .reveal-delay-2.visible { transition-delay: .24s; }
 .reveal-delay-3.visible { transition-delay: .36s; }
+
+/* Stat numbers (rating, %) count up from 0 once scrolled into view — see script.js */
+.stat-num { display: inline-block; }
 
 /* ===== ABOUT ===== */
 .about { padding: 130px 0; background: var(--cream); }
