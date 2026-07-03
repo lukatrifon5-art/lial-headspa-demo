@@ -19,15 +19,16 @@ window.addEventListener('scroll', () => {
 const burger = document.getElementById('burgerBtn');
 const mobileMenu = document.getElementById('mobileMenu');
 if (burger && mobileMenu) {
-  burger.addEventListener('click', () => {
-    burger.classList.toggle('open');
-    mobileMenu.classList.toggle('open');
-  });
+  // Lock background scroll while the menu is open — also sidesteps iOS Safari
+  // quirks where scrolling mid-interaction can shift how fixed elements anchor.
+  const setMenuOpen = (open) => {
+    burger.classList.toggle('open', open);
+    mobileMenu.classList.toggle('open', open);
+    document.body.classList.toggle('menu-open', open);
+  };
+  burger.addEventListener('click', () => setMenuOpen(!mobileMenu.classList.contains('open')));
   mobileMenu.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => {
-      burger.classList.remove('open');
-      mobileMenu.classList.remove('open');
-    });
+    link.addEventListener('click', () => setMenuOpen(false));
   });
 }
 
