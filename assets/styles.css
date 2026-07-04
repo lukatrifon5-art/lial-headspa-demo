@@ -124,6 +124,17 @@ nav a:hover { color: var(--gold-light); }
 .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: heroZoom 8s var(--ease) both; }
 @keyframes heroZoom { from { transform: scale(1.12); opacity: .6; } to { transform: scale(1.03); opacity: 1; } }
 .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(23,20,15,0.55) 0%, rgba(23,20,15,0.35) 40%, rgba(23,20,15,0.78) 100%); z-index: 1; }
+
+/* Ambient drifting steam/mist — the hero photo is literally a steam treatment, so this
+   isn't decoration for its own sake: it extends the room's own atmosphere into the UI.
+   Heavily blurred + low opacity so it reads as soft light, not distinct shapes. */
+.hero-mist { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.hero-mist span { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .38; background: radial-gradient(circle, rgba(231,214,168,0.65), transparent 70%); animation: mistDrift ease-in-out infinite alternate; }
+.hero-mist span:nth-child(1) { width: 440px; height: 440px; top: -12%; left: -10%; animation-duration: 30s; }
+.hero-mist span:nth-child(2) { width: 360px; height: 360px; bottom: -18%; right: -8%; animation-duration: 24s; animation-delay: -6s; }
+.hero-mist span:nth-child(3) { width: 280px; height: 280px; top: 32%; right: 18%; animation-duration: 34s; animation-delay: -12s; }
+@keyframes mistDrift { from { transform: translate(0,0) scale(1); } to { transform: translate(50px,-36px) scale(1.18); } }
+
 .hero-content { position: relative; z-index: 2; padding: 0 24px 70px; color: var(--cream); }
 .hero-content .eyebrow { color: rgba(250,247,240,0.85); animation: fadeUp .9s var(--ease) both; animation-delay: .15s; }
 .rating-pill {
@@ -133,9 +144,13 @@ nav a:hover { color: var(--gold-light); }
   backdrop-filter: blur(6px); animation: fadeUp .9s var(--ease) both; animation-delay: .3s;
 }
 .rating-pill strong { color: var(--gold-light); }
-.hero h1 { font-size: clamp(2.6rem, 6.4vw, 4.8rem); max-width: 920px; margin: 0 auto 26px; color: var(--white); animation: fadeUp 1s var(--ease) both; animation-delay: .3s; }
-.hero p { max-width: 560px; margin: 0 auto 40px; color: rgba(250,247,240,0.88); font-size: 1.08rem; animation: fadeUp 1s var(--ease) both; animation-delay: .45s; }
-.hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s var(--ease) both; animation-delay: .6s; }
+.hero h1 { font-size: clamp(2.6rem, 6.4vw, 4.8rem); max-width: 920px; margin: 0 auto 26px; color: var(--white); }
+/* Words are wrapped in spans by script.js and staggered — see splitHeroHeadline().
+   Falls back to a plain block if JS doesn't run (progressive enhancement, not required). */
+.hero h1 .word { display: inline-block; opacity: 0; filter: blur(8px); transform: translateY(28px); animation: wordIn .85s var(--ease) both; }
+@keyframes wordIn { to { opacity: 1; filter: blur(0); transform: translateY(0); } }
+.hero p { max-width: 560px; margin: 0 auto 40px; color: rgba(250,247,240,0.88); font-size: 1.08rem; animation: fadeUp 1s var(--ease) both; animation-delay: .75s; }
+.hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s var(--ease) both; animation-delay: .9s; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 .scroll-hint {
   position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 2;
@@ -176,8 +191,8 @@ nav a:hover { color: var(--gold-light); }
 
 /* Hero variant: bolder, always-on-load treatment (no scroll trigger) — the one deliberate
    "big" moment, following the same fadeUp timing convention as the rest of the hero content. */
-.ritual-thread--hero { width: 220px; height: 34px; margin: 40px auto 0; opacity: 0; animation: fadeUp .9s var(--ease) both; animation-delay: .75s; }
-.ritual-thread--hero path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: threadDraw 1.3s var(--ease) both; animation-delay: .95s; }
+.ritual-thread--hero { width: 220px; height: 34px; margin: 40px auto 0; opacity: 0; animation: fadeUp .9s var(--ease) both; animation-delay: 1.75s; }
+.ritual-thread--hero path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: threadDraw 1.3s var(--ease) both; animation-delay: 1.95s; }
 @keyframes threadDraw { to { stroke-dashoffset: 0; } }
 
 /* ===== ABOUT ===== */
@@ -202,7 +217,15 @@ nav a:hover { color: var(--gold-light); }
   transition: background .3s ease, border-color .3s ease, transform .3s ease;
 }
 .step-card:hover { background: rgba(250,247,240,0.09); border-color: rgba(184,147,63,0.5); transform: translateY(-6px); }
-.step-num { font-family: 'Cormorant Garamond', serif; font-size: 2.6rem; color: var(--gold); margin-bottom: 14px; }
+/* Fixed-size circular badge (not just a serif numeral) so the 4 steps read as beads
+   on a single connecting thread — see .steps-list::before below — rather than 4
+   unrelated cards that happen to be numbered. */
+.step-num {
+  width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+  font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--gold);
+  border: 1.5px solid var(--gold); background: var(--ink);
+}
 .step-card h3 { color: var(--white); font-size: 1.1rem; margin-bottom: 10px; }
 .step-card p { color: rgba(250,247,240,0.68); font-size: 0.9rem; }
 
@@ -212,10 +235,19 @@ nav a:hover { color: var(--gold-light); }
 .how-photo { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/5; box-shadow: 0 30px 70px -20px rgba(0,0,0,0.7); }
 .how-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
 .how-photo:hover img { transform: scale(1.05); }
-.steps-list { display: flex; flex-direction: column; gap: 16px; }
-.steps-list .step-card { display: flex; gap: 20px; align-items: flex-start; text-align: left; padding: 22px 26px; }
+/* The ritual spine: one continuous thread running behind the 4 step badges, turning
+   the "4 etape" copy into something you can actually see as one continuous ritual
+   rather than 4 separate cards. A CSS ::before is inherently invisible to
+   screen readers, so no extra markup is needed to keep it purely decorative. */
+.steps-list { display: flex; flex-direction: column; gap: 16px; position: relative; }
+.steps-list::before {
+  content: ''; position: absolute; left: 52px; top: 48px; bottom: 48px; width: 1.5px;
+  background: linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%);
+  opacity: .55;
+}
+.steps-list .step-card { display: flex; gap: 20px; align-items: flex-start; text-align: left; padding: 22px 26px; position: relative; z-index: 1; }
 .steps-list .step-card:hover { transform: translateX(8px); }
-.steps-list .step-num { font-size: 1.9rem; margin-bottom: 0; flex-shrink: 0; line-height: 1; }
+.steps-list .step-num { margin: 0; }
 .steps-list .step-card h3 { margin-bottom: 4px; font-size: 1.05rem; }
 .steps-list .step-card p { margin: 0; }
 

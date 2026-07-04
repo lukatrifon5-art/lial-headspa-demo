@@ -1,3 +1,13 @@
+// Hero headline: split into words so CSS can stagger them in individually (see
+// .hero h1 .word in styles.css) instead of the whole line fading up as one block.
+// Progressive enhancement only — the headline text itself never depends on this.
+document.querySelectorAll('.hero h1').forEach((h1) => {
+  const words = h1.textContent.trim().split(/\s+/);
+  h1.innerHTML = words
+    .map((word, i) => `<span class="word" style="animation-delay:${(0.3 + i * 0.06).toFixed(2)}s">${word}</span>`)
+    .join(' ');
+});
+
 // Homepage entrance overlay: shows the logo briefly, then fades away
 const introOverlay = document.getElementById('introOverlay');
 if (introOverlay) {
